@@ -104,3 +104,4 @@ venv.bak/
 .mypy_cache/
 
 .idea/*
+./douban_movie/bin/phantomjs-2.1.1-linux-x86_64/*
