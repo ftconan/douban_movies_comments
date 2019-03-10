@@ -78,7 +78,7 @@ def request_get(url):
     session = requests.Session()
 
     cookie = {
-        'cookie': "bid=MPqc-GreJ1Q; douban-fav-remind=1; __utmc=30149280; __utmz=30149280.1551839465.3.3.utmcsr=baidu|utmccn=(organic)|utmcmd=organic; dbcl2='164706329:4nT3562Qi14'; ck=jgb7; push_noty_num=0; push_doumail_num=0; __utmv=30149280.16470; _vwo_uuid_v2=D92011475AFC39824B3BCDD9B8F455BDD|b3fa3272efd82a0ef8a4353e7a067670; frodotk='f172c70e2b74a6ddd458552a825df497'; __utma=30149280.864854032.1540641565.1551946712.1552034123.5; __utmb=30149280.0.10.1552034123; ap_v=0,6.0",
+        'cookie': 'bid=MPqc-GreJ1Q; douban-fav-remind=1; __utmc=30149280; __utmz=30149280.1551839465.3.3.utmcsr=baidu|utmccn=(organic)|utmcmd=organic; push_noty_num=0; push_doumail_num=0; __utmv=30149280.16470; _vwo_uuid_v2=D92011475AFC39824B3BCDD9B8F455BDD|b3fa3272efd82a0ef8a4353e7a067670; frodotk="f172c70e2b74a6ddd458552a825df497"; __utma=30149280.864854032.1540641565.1552034123.1552181125.6; ap_v=0,6.0; dbcl2="164706329:whQNbA1SqiM"; ck=qAaj; douban-profile-remind=1; __utmb=30149280.10.10.1552181125'
     }
 
     time.sleep(random.randint(5, 15))
@@ -105,7 +105,7 @@ def get_comments(eachComment):
         rating = ''
 
     votes = eachComment.xpath("./h3/span[@class='comment-vote']/span/text()")[0]  # "有用"数
-    content = eachComment.xpath("./p/text()")[0]  # 评论内容
+    content = eachComment.xpath("./p/span[@class='short']/text()")[0]  # 评论内容
     print('content:', content)
 
     commentlist.append(user)
