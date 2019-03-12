@@ -230,110 +230,139 @@ print('SVC', text_classifier.score(x_test,y_test))
 
 
 # 用CNN做中文文本分类,数据预处理
-# stopwords = pd.read_csv('./data/stopwords.txt', index_col=False, quoting=3, sep='\t', names=['stopword'], encoding='utf-8')
-# stopwords = stopwords.values
+stopwords = pd.read_csv('./data/stopwords.txt', index_col=False, quoting=3, sep='\t', names=['stopword'], encoding='utf-8')
+stopwords = stopwords.values
 
-#
-#
-# # 构建两层CNN神经网络
-# learn = tf.contrib.learn
-# FLAGS = None
-# # 文档最长长度
-# MAX_DOCUMENT_LENGTH = 100
-# # 最小词频数
-# MIN_WORD_FREQUENCE = 2
-# # 词嵌入的维度
-# EMBEDDING_SIZE = 20
-# # filter个数
-# N_FILTERS = 10  # 10个神经元
-# # 感知野大小
-# WINDOW_SIZE = 20
-# # filter的形状
-# FILTER_SHAPE1 = [WINDOW_SIZE, EMBEDDING_SIZE]
-# FILTER_SHAPE2 = [WINDOW_SIZE, N_FILTERS]
-# # 池化
-# POOLING_WINDOW = 4
-# POOLING_STRIDE = 2
-# n_words = 0
-#
-#
-# def cnn_model(features, target):
-#     """
-#     2层的卷积神经网络，用于短文本分类
-#     1.先把词转成词嵌入
-#     2.我们得到一个形状为[n_words, EMBEDDING_SIZE]的词表映射矩阵
-#     3.接着我们可以把一批文本映射成[batch_size, sequence_length, EMBEDDING_SIZE]的矩阵形式
-#     :param features:
-#     :param target:
-#     :return:
-#     """
-#     # 对词编码
-#     target = tf.one_hot(target, 15, 1, 0)
-#     word_vectors = tf.contrib.layers.embed_sequence(features,
-#                                                     vocab_size=n_words,
-#                                                     embed_dim=EMBEDDING_SIZE,
-#                                                     scope='words')
-#     word_vectors = tf.expand_dims(word_vectors, 3)
-#
-#     with tf.variable_scope('CNN_Layer1'):
-#         # 添加卷积层做滤波
-#         conv1 = tf.contrib.layers.convolution2d(word_vectors,
-#                                                 N_FILTERS,
-#                                                 FILTER_SHAPE1,
-#                                                 padding='VALID')
-#         # 添加RELU非线性
-#         conv1 = tf.nn.relu(conv1)
-#         # 最大池化
-#         pool1 = tf.nn.max_pool(conv1,
-#                                ksize=[1, POOLING_WINDOW, 1, 1],
-#                                strides=[1, POOLING_STRIDE, 1, 1],
-#                                padding='SAME')
-#         # 对矩阵进行转置，以满足形状
-#         pool1 = tf.transpose(pool1, [0, 1, 3, 2])
-#
-#     with tf.variable_scope('CNN_Layer2'):
-#         # 第二卷积层
-#         conv2 = tf.contrib.layers.convolution2d(pool1,
-#                                                 N_FILTERS,
-#                                                 FILTER_SHAPE1,
-#                                                 padding='VALID')
-#         # 抽取特征
-#         pool2 = tf.squeeze(tf.reduce_max(conv2, 1), squeeze_dims=[1])
-#
-#     # 全连接层
-#     logits = tf.contrib.layers.fully_connected(pool2, 15, activation_fn=None)
-#     loss = tf.losses.softmax_cross_entropy(target, logits)
-#     # 优化器
-#     train_op = tf.contrib.layers.optimize_loss(loss,
-#                                                tf.contrib.framework.get_global_step(),
-#                                                optimizer='Adam',
-#                                                learning_rate=0.01)
-#
-#     return ({
-#                 'class': tf.argmax(logits, 1),
-#                 'prob': tf.nn.softmax(logits)
-#             }, loss, train_op)
+
+def preprocess_text(content_lines, sentences, category):
+    """
+    文本预处理
+    :param content_lines:  评论
+    :param sentences:      句子列表
+    :param category:       是否喜欢
+    :return:
+    """
+    for line in content_lines:
+        try:
+            segs = jieba.lcut(line)
+            segs = filter(lambda x: len(x) > 1, segs)
+            segs = filter(lambda x: x not in stopwords, segs)
+            sentences.append((' '.join(segs), category))
+        except Exception as e:
+            # print(line)
+            continue
+
+
+sentences = []
+preprocess_text(data_com_X_1.comment.dropna().values.tolist(), sentences, 'like')
+n = 0
+while n < 3:
+    preprocess_text(data_com_X_0.comment.dropna().values.tolist(), sentences, 'nlike')
+    n += 1
+
+random.shuffle(sentences)
+x,y = zip(*sentences)
+train_data, test_data, train_target, test_target = train_test_split(x, y, random_state=1234)
+
+# 构建两层CNN神经网络
+learn = tf.contrib.learn
+FLAGS = None
+# 文档最长长度
+MAX_DOCUMENT_LENGTH = 100
+# 最小词频数
+MIN_WORD_FREQUENCE = 2
+# 词嵌入的维度
+EMBEDDING_SIZE = 20
+# filter个数
+N_FILTERS = 10  # 10个神经元
+# 感知野大小
+WINDOW_SIZE = 20
+# filter的形状
+FILTER_SHAPE1 = [WINDOW_SIZE, EMBEDDING_SIZE]
+FILTER_SHAPE2 = [WINDOW_SIZE, N_FILTERS]
+# 池化
+POOLING_WINDOW = 4
+POOLING_STRIDE = 2
+n_words = 0
+
+
+def cnn_model(features, target):
+    """
+    2层的卷积神经网络，用于短文本分类
+    1.先把词转成词嵌入
+    2.我们得到一个形状为[n_words, EMBEDDING_SIZE]的词表映射矩阵
+    3.接着我们可以把一批文本映射成[batch_size, sequence_length, EMBEDDING_SIZE]的矩阵形式
+    :param features:
+    :param target:
+    :return:
+    """
+    # 对词编码
+    target = tf.one_hot(target, 15, 1, 0)
+    word_vectors = tf.contrib.layers.embed_sequence(features,
+                                                    vocab_size=n_words,
+                                                    embed_dim=EMBEDDING_SIZE,
+                                                    scope='words')
+    word_vectors = tf.expand_dims(word_vectors, 3)
+
+    with tf.variable_scope('CNN_Layer1'):
+        # 添加卷积层做滤波
+        conv1 = tf.contrib.layers.convolution2d(word_vectors,
+                                                N_FILTERS,
+                                                FILTER_SHAPE1,
+                                                padding='VALID')
+        # 添加RELU非线性
+        conv1 = tf.nn.relu(conv1)
+        # 最大池化
+        pool1 = tf.nn.max_pool(conv1,
+                               ksize=[1, POOLING_WINDOW, 1, 1],
+                               strides=[1, POOLING_STRIDE, 1, 1],
+                               padding='SAME')
+        # 对矩阵进行转置，以满足形状
+        pool1 = tf.transpose(pool1, [0, 1, 3, 2])
+
+    with tf.variable_scope('CNN_Layer2'):
+        # 第二卷积层
+        conv2 = tf.contrib.layers.convolution2d(pool1,
+                                                N_FILTERS,
+                                                FILTER_SHAPE1,
+                                                padding='VALID')
+        # 抽取特征
+        pool2 = tf.squeeze(tf.reduce_max(conv2, 1), squeeze_dims=[1])
+
+    # 全连接层
+    logits = tf.contrib.layers.fully_connected(pool2, 15, activation_fn=None)
+    loss = tf.losses.softmax_cross_entropy(target, logits)
+    # 优化器
+    train_op = tf.contrib.layers.optimize_loss(loss,
+                                               tf.contrib.framework.get_global_step(),
+                                               optimizer='Adam',
+                                               learning_rate=0.01)
+
+    return ({
+                'class': tf.argmax(logits, 1),
+                'prob': tf.nn.softmax(logits)
+            }, loss, train_op)
 
 
 # 处理词汇
-# vocab_processor = learn.preprocessing.VocabularyProcessor(MAX_DOCUMENT_LENGTH, min_frequency=MIN_WORD_FREQUENCE)
-# x_train = np.array(list(vocab_processor.fit_transform(train_data)))
-# x_test = np.array(list(vocab_processor.transform(test_data)))
-# n_words = len(vocab_processor.vocabulary_)
-# print('Total words:%d' % n_words)
-#
-# cate_dic = {'like': 1, 'nlike': 0}
-# y_train = pd.Series(train_target).apply(lambda x:cate_dic[x], train_target)
-# y_test = pd.Series(test_target).apply(lambda x:cate_dic[x], test_target)
+vocab_processor = learn.preprocessing.VocabularyProcessor(MAX_DOCUMENT_LENGTH, min_frequency=MIN_WORD_FREQUENCE)
+x_train = np.array(list(vocab_processor.fit_transform(train_data)))
+x_test = np.array(list(vocab_processor.transform(test_data)))
+n_words = len(vocab_processor.vocabulary_)
+print('Total words:%d' % n_words)
+
+cate_dic = {'like': 1, 'nlike': 0}
+y_train = pd.Series(train_target).apply(lambda x:cate_dic[x], train_target)
+y_test = pd.Series(test_target).apply(lambda x:cate_dic[x], test_target)
 
 # 4.构建模型
-# classifier = learn.SKCompat(learn.Estimator(model_fn=cnn_model))
+classifier = learn.SKCompat(learn.Estimator(model_fn=cnn_model))
 
 # 训练和预测
-# classifier.fit(x_train, y_train, steps=1000)
-# y_predicted = classifier.predict(x_test)['class']
-# score = metrics.accuracy_score(y_test, y_predicted)
-# print('Accuracy:{0:f}'.format(score))
+classifier.fit(x_train, y_train, steps=1000)
+y_predicted = classifier.predict(x_test)['class']
+score = metrics.accuracy_score(y_test, y_predicted)
+print('CNN Accuracy:{0:f}'.format(score))
 
 # # 使用RNN完成文本分类
 # learn = tf.contrib.learn
