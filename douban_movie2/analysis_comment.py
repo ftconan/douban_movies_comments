@@ -27,7 +27,7 @@ from douban_movie2.crawl_movies import get_hot_movie
 warnings.filterwarnings("ignore")
 mpl.rcParams['figure.figsize']=(10.0,5.0)
 
-data_com = pd.read_csv('./data/comment.csv')
+data_com = pd.read_csv('./data/movie_test_data.csv')
 
 # 1.数据预处理(去重,去除太短的评论)
 data_com.drop_duplicates(inplace=True)

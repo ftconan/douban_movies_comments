@@ -5,6 +5,7 @@ import time
 import random
 from lxml import etree
 
+
 def start_spider():
     base_url = 'https://movie.douban.com/subject/24773958/comments'
     start_url = base_url + '?start=0'
@@ -29,7 +30,7 @@ def start_spider():
         try:
             if number == 1:
                 csv_headers = ['用户', '是否看过', '五星评分', '评论时间', '有用数', '评论内容']
-                data.to_csv('./Marvel3_yingpping.csv', header=csv_headers, index=False, mode='a+', encoding='utf-8')
+                data.to_csv('./Marvel3_yingpping.csv', header=csv_headers,index=False, mode='a+', encoding='utf-8')
             else:
                 data.to_csv('./Marvel3_yingpping.csv', header=False, index=False, mode='a+', encoding='utf-8')
         except UnicodeEncodeError:

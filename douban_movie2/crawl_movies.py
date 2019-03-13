@@ -161,9 +161,9 @@ def save_comment(first_flag, comment_data):
     try:
         if first_flag:
             csv_headers = ['电影', '用户', '是否看过', '五星评分', '评论时间', '有用数', '评论内容']
-            comment_data.to_csv('./data/x.csv', header=csv_headers, index=False, mode='a+', encoding='utf-8')
+            comment_data.to_csv('./data/movie_test_data.csv', header=csv_headers, index=False, mode='a+', encoding='utf-8')
         else:
-            comment_data.to_csv('./data/x.csv', header=False, index=False, mode='a+', encoding='utf-8')
+            comment_data.to_csv('./data/movie_test_data.csv', header=False, index=False, mode='a+', encoding='utf-8')
     except UnicodeEncodeError:
         print("编码错误, 该数据无法写到文件中, 直接忽略该数据")
 
