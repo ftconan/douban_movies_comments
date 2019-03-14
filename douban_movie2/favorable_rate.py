@@ -59,7 +59,6 @@ def process_data(csv_name, **kwargs):
         if data_type == 'train':
             data_com = data_com.drop(['id'], axis=1)
         else:
-            data_com = data_com.drop(['id'], axis=1)
             data_com = data_com.drop(['user', 'is_watch', 'use_count'], axis=1)
         # mark: like: star >= 3 unlike: star < 3
         data_com['label'] = (data_com.star >= 3) * 1
@@ -149,10 +148,10 @@ def predict(diff_name, comment, vocab_processor, classifier):
 
     flag = None
     if classifier.predict(x_tt)['class'][0]:
-        print(diff_name+' '+'predict: '+'like')
+        print(diff_name + ' ' + 'predict: ' + 'like')
         flag = 1
     else:
-        print(diff_name+' '+'predict: '+'dislike')
+        print(diff_name + ' ' + 'predict: ' + 'dislike')
         flag = 0
 
     return flag
@@ -164,10 +163,21 @@ def get_comment(data_com):
     :param data_com:
     :return:
     """
-    movie_name_list =data_com['movie']
-    print(movie_name_list)
+    movie_name_list = data_com['movie'].tolist()
+    name, name_list = movie_name_list[0], []
+    for i in range(len(movie_name_list)):
+        if i == 0:
+            name = movie_name_list[i]
+            name_list.append(name)
+        else:
+            if movie_name_list[i] != name:
+                name = movie_name_list[i]
+                name_list.append(name)
+            else:
+                continue
 
-    return movie_name_list
+    print('name_list: ', name_list)
+    return name_list
 
 
 def count_favorable_rate():
