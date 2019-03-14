@@ -54,23 +54,24 @@ POOLING_STRIDE = 2
 n_words = 0
 
 
-def process_data(csv_name, movie_name, **kwargs):
+def process_data(csv_name, **kwargs):
     """
     数据预处理(去重,去除太短的评论)
     :param csv_name:     CSV名称
-    :param movie_name:   电影名称
     :param kwargs
     :return:
     """
     try:
+        movie_name = kwargs.get('movie_name')
         data_type = kwargs.get('data_type')
         csv_path = './data/' + csv_name + '.csv'
         data_com = pd.read_csv(csv_path)
         data_com.drop_duplicates(inplace=True)
         if data_type == 'train':
-            data_com = data_com.drop(['user', 'is_watch', 'use_count'], axis=1)
+            data_com = data_com.drop(['id'], axis=1)
         else:
             data_com = data_com.drop(['id'], axis=1)
+            data_com = data_com.drop(['user', 'is_watch', 'use_count'], axis=1)
         # mark: like: star >= 3 unlike: star < 3
         data_com['label'] = (data_com.star >= 3) * 1
     except Exception as e:
